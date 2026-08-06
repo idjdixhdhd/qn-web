@@ -68,78 +68,36 @@
     }
 
     E.onFrame = function (dt, t) {
-      flap = mix(flap, tFlap, 0.10); sent = mix(sent, tSent, 0.06); sealScale = mix(sealScale, tSeal, 0.10);
-      openA = mix(openA, tOpen * (flap < 0.5 ? 1 : 0), 0.06);
-      var envY = 1.0 + sent * 0.28, envZ = -sent * 0.45;
+      var prog = total > 0 ? U.clamp(1 - left / total, 0, 1) : 0;
       E.sky({ top: '#04090d', bottom: '#0a1620', glow: '120,200,210', starColor: '200,228,235' });
-
-      // 时间环（到期进度）
-      var segs = 64, lit = Math.round(segs * progress);
-      for (var i = 0; i < segs; i++) {
-        var a0 = i / segs * 6.2832 - 1.57, a1 = (i + 0.7) / segs * 6.2832 - 1.57, on = i < lit, r1 = 1.5, col = on ? '159,227,190' : '70,110,120';
-        E.line([Math.cos(a0) * r1, envY, Math.sin(a0) * r1], [Math.cos(a1) * r1, envY, Math.sin(a1) * r1], { color: col, alpha: on ? 0.9 : 0.3, w: on ? 2.4 : 1.4, glow: on ? 6 : 0 });
+      plot(t);
+      // 已种下的花：完全绽放；正在专注的那一朵：随进度绽放
+      for (var i = 0; i < flowers.length; i++) {
+        var f = flowers[i];
+        var open = i < flowerCount ? 1 : (i === flowerCount && running ? prog : 0);
+        if (open <= 0.002) continue;
+        flower(f.x, f.z, 0.04, f.scale, open, f.hue, f.ph, t);
       }
-
-      var W = 0.86, H = 0.58, T = 0.08, zf = envZ + T / 2 + 0.006;
-      var BASE = '232,228,212', DARK = '196,190,170', LIGHT = '250,246,232';
-      function sh(c, k) { var p = String(c).split(',').map(Number); return p.map(function (x) { return Math.max(0, Math.min(255, Math.round(x * k))); }).join(','); }
-
-      // 背面（略大于正面，营造厚度）
-      E.poly([P([-W, envY - H, envZ - T / 2]), P([W, envY - H, envZ - T / 2]), P([W, envY + H, envZ - T / 2]), P([-W, envY + H, envZ - T / 2])],
-        { color: sh(BASE, 0.82), fill: true, alpha: 1, stroke: 'rgba(120,108,82,.35)', lw: 1 });
-
-      // 正面口袋（下半部）
-      E.poly([P([-W, envY - H, zf]), P([W, envY - H, zf]), P([W, envY + 0.04, zf]), P([-W, envY + 0.04, zf])],
-        { color: sh(BASE, 0.95), fill: true, alpha: 1, stroke: 'rgba(120,108,82,.35)', lw: 1 });
-      // 正面口袋折边 V 线
-      E.poly([P([-W * 0.95, envY - H * 0.96, zf + 0.004]), P([W * 0.95, envY - H * 0.96, zf + 0.004]), P([0, envY + 0.02, zf + 0.004])],
-        { color: sh(BASE, 0.92), fill: false, stroke: 'rgba(120,108,82,.40)', lw: 1 });
-
-      // 左右侧三角折翼
-      function sidePoly(dx, dark) {
-        var x0 = dx > 0 ? W - 0.02 : -W + 0.02, x1 = dx > 0 ? W + 0.02 : -W - 0.02;
-        E.poly([P([x0, envY - H, zf]), P([x1, envY - H, envZ - T / 2]), P([x1, envY + 0.04, envZ - T / 2]), P([x0, envY + 0.04, zf])],
-          { color: sh(DARK, dark ? 0.78 : 0.86), fill: true, alpha: 1, stroke: 'rgba(120,108,82,.35)', lw: 1 });
+      // 飘动的微光精灵
+      for (var s = 0; s < spirits.length; s++) {
+        var sp = spirits[s];
+        sp.a += sp.sp * dt * 0.18;
+        var sx = Math.cos(sp.a) * sp.r, sz = Math.sin(sp.a) * sp.r, sy = sp.h + Math.sin(t * 0.6 + sp.ph) * 0.15;
+        E.sphere(sx, sy, sz, 0.05, { color: '159,227,190', alpha: 0.5, glow: true, glowR: 2.2, glowA: 0.08 });
       }
-      sidePoly(-1, true); sidePoly(1, false);
-
-      // 底部三角折翼
-      E.poly([P([-W, envY - H, zf]), P([W, envY - H, zf]), P([0, envY - H, envZ - T / 2])],
-        { color: sh(DARK, 0.74), fill: true, alpha: 1, stroke: 'rgba(120,108,82,.35)', lw: 1 });
-
-      // 顶部封盖（沿上边翻开）
-      var hinge = envY + H;
-      var th = (1 - flap) * 2.55;   // flap=1 闭合, flap=0 翻开
-      function rotTop(Pt) {
-        var py = Pt[1] - hinge, pz = Pt[2] - zf;
-        return [Pt[0], hinge + py * Math.cos(th) - pz * Math.sin(th), zf + py * Math.sin(th) + pz * Math.cos(th)];
+      // 绽放瞬间的光点迸发
+      for (var b = 0; b < bursts.length; b++) {
+        var bu = bursts[b]; bu.r0 += bu.v * dt;
+        E.sphere(Math.cos(bu.a) * bu.r0, 0.4 + bu.r0 * 0.10, Math.sin(bu.a) * bu.r0, 0.045, { color: '255,236,170', alpha: 0.6, glow: true, glowR: 2, glowA: 0.06 });
       }
-      var FA = [-W * 0.98, hinge, zf], FB = [W * 0.98, hinge, zf], FC = [0, envY - H * 0.10, zf];
-      var FAr = rotTop(FA), FBr = rotTop(FB), FCr = rotTop(FC);
-      // 封口盖两面（有厚度感）
-      E.poly([P(FAr), P(FBr), P(FCr)], { color: sh(LIGHT, 1.0), fill: true, alpha: 1, stroke: 'rgba(120,108,82,.42)', lw: 1 });
-      // 封口盖内侧（翻开时可见）
-      if (flap < 0.85) {
-        E.poly([P(FAr), P(FCr), P(FBr)], { color: sh(BASE, 0.88), fill: true, alpha: 1 });
-      }
-
-      // 火漆封印（闭合时贴在盖尖）
-      if (sealScale > 0.02) {
-        var sc = [0, envY - H * 0.12, zf + 0.018];
-        E.sphere(sc[0], sc[1], sc[2] + 0.04, 0.13 * sealScale, { color: '196,52,52', shade: '90,20,20', glow: true, glowR: 2.4, glowA: 0.2 * sealScale });
-        E.sphere(sc[0], sc[1], sc[2] + 0.04, 0.05 * sealScale, { color: '240,120,120', glow: true, glowR: 2, glowA: 0.3 * sealScale });
-      }
-
-      // 信纸（开启时从信封内升起）
-      if (openA > 0.02) {
-        var ly = envY + H * 0.05 + openA * 1.05;
-        box(0, ly, envZ, W * 0.78, H * 0.70, 0.045, '250,246,228', 1);
-        // 信纸上的几行虚线
-        for (var li = 0; li < 4; li++) {
-          var yy = ly + 0.10 - li * 0.11;
-          E.line([-W * 0.55, yy, zf + 0.05], [W * 0.55, yy, zf + 0.05], { color: '160,150,130', alpha: 0.5 * openA, w: 1 });
-        }
-        if (openA > 0.5) E.glowAt(E.W / 2, E.H * 0.42, 70, '159,227,190', 0.10 * openA);
+      if (bursts.length) bursts = bursts.filter(function (x) { return x.r0 < 3; });
+      // 地面静默进度环
+      var segs = 48, lit = Math.round(segs * prog);
+      for (var i2 = 0; i2 < segs; i2++) {
+        var aa = i2 / segs * 6.2832 - 1.57, aa1 = (i2 + 0.8) / segs * 6.2832 - 1.57;
+        var on = i2 < lit;
+        E.line([Math.cos(aa) * 2.92, 0.03, Math.sin(aa) * 2.92], [Math.cos(aa1) * 2.92, 0.03, Math.sin(aa1) * 2.92],
+          { color: on ? '159,227,190' : '70,110,120', alpha: on ? 0.85 : 0.22, w: on ? 2 : 1.2 });
       }
     };    E.start();
     return {
