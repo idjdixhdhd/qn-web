@@ -19,7 +19,7 @@
  *   opts.onPick(post) -> 瓶子在眼前打开时回调（用于显示文字）
  *   opts.onNotice(msg)-> 想提示用户时回调（如「它还在远处」）
  * ========================================================================== */
-import * as THREE from "./vendor/three.module.js";
+import * as THREE from "./three.module.js";
 
 const MAX_VISIBLE = 20;        // 同时在海上的瓶子上限（弱机也能跑动）
 const REACH = 6.2;             // 手能够到的距离
