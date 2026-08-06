@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="38%" r="62%">
+      <stop offset="0%" stop-color="#12322A"/>
+      <stop offset="100%" stop-color="#0A0F0D"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#glow)"/>
+  <!-- 月：先用强调色画圆，再用背景色偏移圆切出月牙 -->
+  <circle cx="352" cy="168" r="50" fill="#9FE3BE"/>
+  <circle cx="334" cy="152" r="50" fill="#0A0F0D"/>
+  <!-- 远山轮廓 -->
+  <path d="M70 372 Q170 300 256 352 T442 336 L442 442 L70 442 Z" fill="#1B3A2F" opacity="0.9"/>
+  <!-- 水面波纹 -->
+  <g fill="none" stroke="#9FE3BE" stroke-width="13" stroke-linecap="round" opacity="0.92">
+    <path d="M86 408 q55 -34 110 0 t110 0 t110 0"/>
+    <path d="M120 436 q46 -26 92 0 t92 0" opacity="0.6"/>
+  </g>
+</svg>
