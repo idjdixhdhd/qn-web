@@ -24,7 +24,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600;700&family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500;600&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
 <!-- 提前预载 Three.js 引擎（漂流瓶/海滩 3D 依赖，约 1.3MB）。页面一打开就开始下载，
      等用户走到「漂流瓶」板块时基本已就绪，彻底解决「海面引擎未能加载」的加载竞态。 -->
-<link rel="modulepreload" href="./vendor/three.module.js">
+<link rel="modulepreload" href="./three.module.js">
 <style>
 :root{
   --bg:#0A0F0D; --glass:rgba(255,255,255,.10); --glass-border:rgba(255,255,255,.14);
