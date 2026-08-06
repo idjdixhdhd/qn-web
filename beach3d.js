@@ -1,4 +1,4 @@
-import * as THREE from './vendor/three.module.js';
+import * as THREE from './three.module.js';
 
 export function startBeach(container, opts={}){
 let beachUIEl=null, cleanupBeachUI=null;   // 控制浮层（全屏/4阶段/进度条/隐藏功能）
